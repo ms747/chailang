@@ -17,7 +17,6 @@ pub enum Expression {
     FunctionCall(Box<Expression>, Vec<Expression>),
     Array(Vec<Expression>),
     ArrayIndex(Box<Expression>, Box<Expression>),
-    ReAssign(Box<Expression>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -28,6 +27,7 @@ pub enum Prefix {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operator {
+    Assign,
     Plus,
     Minus,
     Multiply,
@@ -50,6 +50,7 @@ impl Display for Operator {
             Operator::Lessthan => operator_string.push('<'),
             Operator::Equals => operator_string.push_str("=="),
             Operator::Notequals => operator_string.push_str("!="),
+            Operator::Assign => operator_string.push('='),
         };
         write!(f, "{}", operator_string)
     }

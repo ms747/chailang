@@ -6,5 +6,6 @@ pub enum Statement {
     Return(Box<Expression>),
     ExpressionStatement(Box<Expression>),
     BlockStatement(Vec<Statement>),
+    Reassignment(String, Box<Expression>),
     Program(Vec<Statement>),
 }

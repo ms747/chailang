@@ -28,7 +28,23 @@ fn push(object: Vec<ChaiObject>) -> ChaiObject {
     }
 
     if let ChaiObject::Array(mut array) = object[0].clone() {
+        if let ChaiObject::Error(_) = object[1] {
+            return object[1].clone();
+        }
         array.push(object[1].clone());
+        return ChaiObject::Array(array);
+    }
+
+    error("First argument should be an array")
+}
+
+fn pop(object: Vec<ChaiObject>) -> ChaiObject {
+    if object.len() != 1 {
+        return error(&format!("Expected 1 argument, found {}", object.len()));
+    }
+
+    if let ChaiObject::Array(mut array) = object[0].clone() {
+        array.pop();
         return ChaiObject::Array(array);
     }
 
@@ -70,6 +86,7 @@ impl Std {
         buildinfunctions.insert("len".into(), len);
         buildinfunctions.insert("push".into(), push);
         buildinfunctions.insert("print".into(), print);
+        buildinfunctions.insert("pop".into(), pop);
         Std { buildinfunctions }
     }
 

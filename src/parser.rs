@@ -13,6 +13,7 @@ type InfixParseFn = fn(&mut Parser, Expression) -> Result<Expression, String>;
 #[derive(Debug, PartialOrd, PartialEq)]
 pub enum Precedence {
     Lowest,
+    Assign,
     Equals,
     Lessgreater,
     Sum,
@@ -63,6 +64,7 @@ impl Parser {
         parser.register_infix(TokenType::Notequal, Parser::parse_infix_expression);
         parser.register_infix(TokenType::Greaterthan, Parser::parse_infix_expression);
         parser.register_infix(TokenType::Lessthan, Parser::parse_infix_expression);
+        parser.register_infix(TokenType::Assign, Parser::parse_infix_expression);
         parser.register_infix(TokenType::Lparen, Parser::parse_call_expression);
         parser.register_infix(TokenType::Lbracket, Parser::parse_array_index_expression);
         // Step parser
@@ -327,6 +329,7 @@ impl Parser {
             TokenType::Notequal => Operator::Notequals,
             TokenType::Lessthan => Operator::Lessthan,
             TokenType::Greaterthan => Operator::Greaterthan,
+            TokenType::Assign => Operator::Assign,
             _ => return Err(self.parsing_error("Not an infix expression")),
         };
 
@@ -363,7 +366,6 @@ impl Parser {
     }
 
     fn parse_call_expression(&mut self, function: Expression) -> Result<Expression, String> {
-        //
         let arguments = self.parse_call_arguments()?;
         let call_expression = Expression::FunctionCall(function.into(), arguments);
         Ok(call_expression)
@@ -394,7 +396,10 @@ impl Parser {
         let prefix = self.prefix_fns.get(&self.current.token_type);
 
         if prefix.is_none() {
-            return Err(self.parsing_error("Unkown prefix expression"));
+            return Err(self.parsing_error(&format!(
+                "Unknown prefix expression : {}",
+                self.current.token_info.litertal
+            )));
         }
 
         let prefix = prefix.unwrap();

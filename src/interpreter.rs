@@ -69,6 +69,7 @@ fn eval_integer_infix_expression(left: i32, operator: Operator, right: i32) -> C
         Operator::Greaterthan => ChaiObject::Boolean(left > right),
         Operator::Equals => ChaiObject::Boolean(left == right),
         Operator::Notequals => ChaiObject::Boolean(left != right),
+        Operator::Assign => error("Need LHS to be a variable"),
     }
 }
 
@@ -123,6 +124,20 @@ fn eval_array_index_expression(array: ChaiObject, index: ChaiObject) -> ChaiObje
     }
 }
 
+fn eval_reassign_expression(
+    expression: Expression,
+    right: ChaiObject,
+    env: &mut Enviornment,
+) -> ChaiObject {
+    if let Expression::Ident(variable) = expression {
+        if env.get(&variable).is_none() {
+            return error(&format!("Variable {} not found", variable));
+        }
+        env.set(&variable, right.clone());
+    }
+    right
+}
+
 fn eval_expression(expression: Expression, env: &mut Enviornment, std: &mut Std) -> ChaiObject {
     match expression {
         Expression::Integer(integer) => ChaiObject::Integer(integer),
@@ -142,6 +157,14 @@ fn eval_expression(expression: Expression, env: &mut Enviornment, std: &mut Std)
             eval_prefix_expression(prefix, object)
         }
         Expression::Infix(left, operator, right) => {
+            if Operator::Assign == operator {
+                let right = eval_expression(*right, env, std);
+                if is_error(&right) {
+                    return right;
+                }
+                return eval_reassign_expression(*left, right, env);
+            }
+
             let left = eval_expression(*left, env, std);
             if is_error(&left) {
                 return left;
@@ -232,9 +255,6 @@ fn eval_expression(expression: Expression, env: &mut Enviornment, std: &mut Std)
 
             eval_array_index_expression(array, index)
         }
-        Expression::ReAssign(_) => {
-            panic!("hi");
-        }
         _ => panic!("Statement not implemented"),
     }
 }
@@ -317,6 +337,14 @@ pub fn eval(statement: Statement, env: &mut Enviornment, std: &mut Std) -> ChaiO
             env.set(&name, value.clone());
             value
         }
+        Statement::Reassignment(name, expression) => {
+            let value = eval_expression(*expression, env, std);
+            if is_error(&value) {
+                return value;
+            }
+            env.set(&name, value.clone());
+            value
+        }
     }
 }
 
@@ -331,7 +359,6 @@ fn eval_block_statment(
 
         if let ChaiObject::Print(print) = result.clone() {
             println!("{}", print);
-            return NULL;
         }
 
         if result != ChaiObject::Null

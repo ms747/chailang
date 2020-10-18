@@ -27,11 +27,11 @@ impl Enviornment {
         self.state.insert(name.into(), object);
     }
 
-    pub fn get(self, name: &str) -> Option<ChaiObject> {
+    pub fn get(&mut self, name: &str) -> Option<ChaiObject> {
         let value = self.state.get(name.into()).cloned();
         if !value.is_some() && !self.outer.is_none() {
-            if let Some(outer) = self.outer {
-                return outer.get(name);
+            if let Some(outer) = self.outer.clone() {
+                return outer.clone().get(name);
             }
         }
         value

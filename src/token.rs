@@ -56,6 +56,7 @@ impl TokenType {
             TokenType::Slash => Precedence::Product,
             TokenType::Lparen => Precedence::Call,
             TokenType::Lbracket => Precedence::Index,
+            TokenType::Assign => Precedence::Assign,
             _ => Precedence::Lowest,
         }
     }
